@@ -14,3 +14,11 @@ Route::get('auth/login', function () {
 Route::get('kasir/dashboard', function () {
     return Inertia::render('kasir/dashboard');
 });
+
+Route::get('kasir/profile', function () {
+    return Inertia::render('kasir/Profile');
+});
+
+Route::get('kasir/settings', function () {
+    return Inertia::render('kasir/Settings');
+});

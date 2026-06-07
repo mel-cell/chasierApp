@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -7,14 +7,15 @@ import {
     Plus, 
     Minus, 
     Trash2, 
-    Store, 
     User, 
     Clock, 
     Receipt, 
     CheckCircle2, 
     X, 
     ShoppingBag, 
-    ChevronRight
+    ChevronRight,
+    Settings,
+    LogOut
 } from 'lucide-react';
 
 interface Product {
@@ -52,6 +53,7 @@ export default function Dashboard() {
     const [paidAmountInput, setPaidAmountInput] = useState<string>('');
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [currentTime, setCurrentTime] = useState('');
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const [transactionNumber, setTransactionNumber] = useState(() => {
         const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomStr = Math.floor(1000 + Math.random() * 9000);
@@ -209,8 +211,8 @@ export default function Dashboard() {
                     </div>
 
                     {/* Cashier Info */}
-                    <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex flex-col text-right">
+                    <div className="flex items-center gap-4 relative">
+                        <div className="hidden sm:flex flex-col text-right select-none">
                             <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 justify-end">
                                 <User className="h-3.5 w-3.5 text-primary" /> Cashier Mel
                             </span>
@@ -218,9 +220,51 @@ export default function Dashboard() {
                                 <Clock className="h-3 w-3" /> {currentTime || '--:--:--'}
                             </span>
                         </div>
-                        <div className="h-9 w-9 rounded-sm bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-sm text-primary uppercase shadow-inner">
+                        <button
+                            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                            className="h-9 w-9 rounded-sm bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-sm text-primary uppercase shadow-inner hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
+                        >
                             CM
-                        </div>
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {isProfileDropdownOpen && (
+                            <>
+                                {/* Backdrop to dismiss when clicking outside */}
+                                <div 
+                                    className="fixed inset-0 z-45"
+                                    onClick={() => setIsProfileDropdownOpen(false)}
+                                />
+                                <div className="absolute right-0 top-11 w-48 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-slate-800 dark:text-slate-200">
+                                    <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white">Cashier Mel</p>
+                                        <p className="text-[10px] text-muted-foreground truncate">mel@chasierapp.com</p>
+                                    </div>
+                                    <Link 
+                                        href="/kasir/profile"
+                                        className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-2 cursor-pointer transition-colors"
+                                    >
+                                        <User className="h-3.5 w-3.5 text-slate-400" />
+                                        <span>Profil Saya</span>
+                                    </Link>
+                                    <Link 
+                                        href="/kasir/settings"
+                                        className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-2 cursor-pointer transition-colors"
+                                    >
+                                        <Settings className="h-3.5 w-3.5 text-slate-400" />
+                                        <span>Pengaturan</span>
+                                    </Link>
+                                    <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                                    <Link 
+                                        href="/auth/login"
+                                        className="w-full text-left px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/5 flex items-center gap-2 cursor-pointer transition-colors"
+                                    >
+                                        <LogOut className="h-3.5 w-3.5" />
+                                        <span>Keluar (Log Out)</span>
+                                    </Link>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </header>
 
@@ -320,7 +364,7 @@ export default function Dashboard() {
                                                     <span className="text-[8px] uppercase font-bold text-white tracking-wider mb-0.5">
                                                         {product.category}
                                                     </span>
-                                                    <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1 leading-snug">
+                                                    <h3 className="text-md font-bold text-slate-900 dark:text-white line-clamp-1 leading-snug">
                                                         {product.name}
                                                     </h3>
                                                     <p className="text-sm font-black text-white mt-0.5">

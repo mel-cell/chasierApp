@@ -17,9 +17,33 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+
+        \App\Models\User::Create([
+            'name' => 'Lintang',
+            'email' => 'owner@gmail.com',
+            'password' => bcrypt('kontol'),
+            'role' => 'owner',
+            "email_verified_at" => Now(),
+        ]);
+
+        \App\Models\PaymentMethod::insert([
+            ['name' => 'Tunai'],
+            ['name' => 'Non Tunai'],
+        ]);
+
+        \App\Models\Warehouse::create([
+            'name' => 'Gudang Dapur',
+            'user_id' => null
+        ]);
+
+        \App\Models\Ingredient::create([
+            'name' => 'Kopi Arabica',
+            'unit' => 'gram',
+            'min_stock' => 500
         ]);
     }
 }

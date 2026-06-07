@@ -62,26 +62,26 @@ export default function Login() {
                         </div>
 
                         {/* Poin-Poin Keunggulan (Simple & Clean) */}
-                        <div className="space-y-4 pt-6 border-t border-white/10">
-                            <div className="flex items-start gap-3">
-                                <CheckCircle2 className="h-5 w-5 text-white/90 shrink-0 mt-0.5" />
+                        <div className="space-y-5 pt-6 border-t border-white/10">
+                            <div className="flex items-start gap-4">
+                                <CheckCircle2 className="h-6 w-6 text-white/90 shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-semibold text-white">Point of Sale Instan</h4>
-                                    <p className="text-xs text-white/70 mt-0.5">Catat transaksi kasir digital & cetak struk dalam hitungan detik.</p>
+                                    <h4 className="text-base font-semibold text-white">Point of Sale Instan</h4>
+                                    <p className="text-sm text-white/70 mt-1">Catat transaksi kasir digital & cetak struk dalam hitungan detik.</p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3">
-                                <CheckCircle2 className="h-5 w-5 text-white/90 shrink-0 mt-0.5" />
+                            <div className="flex items-start gap-4">
+                                <CheckCircle2 className="h-6 w-6 text-white/90 shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-semibold text-white">Manajemen Stok Real-time</h4>
-                                    <p className="text-xs text-white/70 mt-0.5">Pantau jumlah produk di gudang secara akurat tanpa takut kehabisan.</p>
+                                    <h4 className="text-base font-semibold text-white">Manajemen Stok Real-time</h4>
+                                    <p className="text-sm text-white/70 mt-1">Pantau jumlah produk di gudang secara akurat tanpa takut kehabisan.</p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3">
-                                <CheckCircle2 className="h-5 w-5 text-white/90 shrink-0 mt-0.5" />
+                            <div className="flex items-start gap-4">
+                                <CheckCircle2 className="h-6 w-6 text-white/90 shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-semibold text-white">Laporan Keuangan Otomatis</h4>
-                                    <p className="text-xs text-white/70 mt-0.5">Dapatkan rekap omzet harian & bulanan untuk evaluasi bisnis Anda.</p>
+                                    <h4 className="text-base font-semibold text-white">Laporan Keuangan Otomatis</h4>
+                                    <p className="text-sm text-white/70 mt-1">Dapatkan rekap omzet harian & bulanan untuk evaluasi bisnis Anda.</p>
                                 </div>
                             </div>
                         </div>
@@ -105,27 +105,27 @@ export default function Login() {
                         </span>
                     </div>
 
-                    <div className="w-full max-w-[400px] space-y-7">
+                    <div className="w-full max-w-[420px] space-y-8">
                         {/* Headers */}
-                        <div className="space-y-2">
-                            <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                        <div className="space-y-3">
+                            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
                                 Selamat Datang
                             </h1>
-                            <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                            <p className="text-base text-muted-foreground leading-relaxed">
                                 Masuk menggunakan kredensial akun Anda untuk mengakses dashboard kasir.
                             </p>
                         </div>
 
                         {/* Form */}
-                        <form onSubmit={handleSubmit} className="space-y-4.5">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Email Input */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                                     Email
                                 </Label>
                                 <div className="relative rounded-lg group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                                        <Mail className="h-4 w-4" />
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                        <Mail className="h-5 w-5" />
                                     </div>
                                     <Input
                                         id="email"
@@ -133,34 +133,34 @@ export default function Login() {
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
                                         placeholder="nama@email.com"
-                                        className="pl-9 h-10 bg-background border-slate-200 dark:border-slate-800 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg"
+                                        className="pl-11 h-12 bg-background border-slate-200 dark:border-slate-800 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg text-base"
                                         required
                                         autoComplete="username"
                                     />
                                 </div>
                                 {errors.email && (
-                                    <p className="text-xs font-medium text-destructive mt-1">
+                                    <p className="text-sm font-medium text-destructive mt-1">
                                         {errors.email}
                                     </p>
                                 )}
                             </div>
 
                             {/* Password Input */}
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <Label htmlFor="password" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                                         Password
                                     </Label>
                                     <a 
                                         href="#forgot" 
-                                        className="text-xs text-primary hover:underline font-medium hover:text-primary/95 transition-colors"
+                                        className="text-sm text-primary hover:underline font-medium hover:text-primary/95 transition-colors"
                                     >
                                         Lupa password?
                                     </a>
                                 </div>
                                 <div className="relative rounded-lg group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                                        <Lock className="h-4 w-4" />
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                        <Lock className="h-5 w-5" />
                                     </div>
                                     <Input
                                         id="password"
@@ -168,25 +168,25 @@ export default function Login() {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="••••••••"
-                                        className="pl-9 pr-10 h-10 bg-background border-slate-200 dark:border-slate-800 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg"
+                                        className="pl-11 pr-12 h-12 bg-background border-slate-200 dark:border-slate-800 focus-visible:ring-primary/20 focus-visible:border-primary transition-all rounded-lg text-base"
                                         required
                                         autoComplete="current-password"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                                         tabIndex={-1}
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-4 w-4" />
+                                            <EyeOff className="h-5 w-5" />
                                         ) : (
-                                            <Eye className="h-4 w-4" />
+                                            <Eye className="h-5 w-5" />
                                         )}
                                     </button>
                                 </div>
                                 {errors.password && (
-                                    <p className="text-xs font-medium text-destructive mt-1">
+                                    <p className="text-sm font-medium text-destructive mt-1">
                                         {errors.password}
                                     </p>
                                 )}
@@ -199,9 +199,9 @@ export default function Login() {
                                         type="checkbox"
                                         checked={data.remember}
                                         onChange={(e) => setData('remember', e.target.checked)}
-                                        className="h-4 w-4 rounded border-slate-300 dark:border-slate-800 text-primary focus:ring-primary/25 cursor-pointer accent-primary"
+                                        className="h-5 w-5 rounded border-slate-300 dark:border-slate-800 text-primary focus:ring-primary/25 cursor-pointer accent-primary"
                                     />
-                                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
                                         Ingat perangkat ini
                                     </span>
                                 </label>
@@ -211,17 +211,17 @@ export default function Login() {
                             <Button 
                                 type="submit" 
                                 disabled={processing} 
-                                className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm transition-all shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                                className="w-full h-12 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base transition-all shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                             >
                                 {processing ? (
                                     <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-5 w-5 animate-spin" />
                                         <span>Memproses...</span>
                                     </>
                                 ) : (
                                     <>
                                         <span>Masuk ke Akun</span>
-                                        <ArrowRight className="h-4 w-4 transition-transform group-hover/button:translate-x-0.5" />
+                                        <ArrowRight className="h-5 w-5 transition-transform group-hover/button:translate-x-0.5" />
                                     </>
                                 )}
                             </Button>
@@ -229,7 +229,7 @@ export default function Login() {
 
                         {/* Extra Navigation Footer */}
                         <div className="pt-2 text-center">
-                            <p className="text-xs text-muted-foreground font-light">
+                            <p className="text-sm text-muted-foreground font-light">
                                 Mengalami kesulitan masuk?{' '}
                                 <a href="#support" className="text-primary hover:underline font-semibold">
                                     Hubungi Bantuan

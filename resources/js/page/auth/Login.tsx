@@ -25,7 +25,7 @@ export default function Login() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/login');
+        post('/auth/login');
     };
 
     return (

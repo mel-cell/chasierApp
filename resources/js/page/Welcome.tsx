@@ -20,7 +20,7 @@ export default function Welcome() {
 
     useEffect(() => {
         if (showSubtitle) {
-            const t = setTimeout(() => router.visit('/login'), 1200);
+            const t = setTimeout(() => router.visit('/auth/login'), 1200);
             return () => clearTimeout(t);
         }
     }, [showSubtitle]);

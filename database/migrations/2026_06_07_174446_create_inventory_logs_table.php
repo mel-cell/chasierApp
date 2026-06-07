@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('inventory_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('ingredients_id')->constrained();
+            $table->foreignId('ingredient_id')->constrained();
             $table->foreignId('warehouse_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->enum('type', ['in', 'out']);
             $table->decimal('quantity', 10, 2);
             $table->string('reason')->nullable();

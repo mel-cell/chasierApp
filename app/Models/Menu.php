@@ -54,6 +54,6 @@ class Menu extends Model
             }
         }
 
-        return min('$possiblePortions');
+        return min($possiblePortions);
     }
 }

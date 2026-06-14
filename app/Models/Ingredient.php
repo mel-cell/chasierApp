@@ -4,9 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\InventoryLog;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Models\Menu; 
 
 class Ingredient extends Model
 {
@@ -17,9 +15,14 @@ class Ingredient extends Model
         return $this->hasMany(InventoryLog::class);
     }
 
+    public function warehouseIngredients(): HasMany
+    {
+        return $this->hasMany(WarehouseIngredient::class);
+    }
+
     public function menus(): BelongsToMany
     {
-        return $this->belongsToMany(Menu::class, 'menu_indgredients')
+        return $this->belongsToMany(Menu::class, 'menu_ingredients')
                     ->withPivot('quantity', 'unit')
                     ->withTimestamps();
     }

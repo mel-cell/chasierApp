@@ -20,4 +20,9 @@ class InventoryLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
 }

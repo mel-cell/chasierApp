@@ -3,47 +3,63 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\PaymentMethod;
+use App\Models\Warehouse;
+use App\Models\Ingredient;
+use App\Models\Setting;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->seedUsers();
+        $this->seedPaymentMethods();
+        $this->seedDefaults();
 
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $this->call(DummyDataSeeder::class);
+    }
 
-        \App\Models\User::Create([
-            'name' => 'Lintang',
-            'email' => 'owner@gmail.com',
-            'password' => bcrypt('kontol'),
-            'role' => 'owner',
-            "email_verified_at" => Now(),
-        ]);
+    private function seedUsers(): void
+    {
+        $jsonPath = database_path('seeders/data/users.json');
+        if (!File::exists($jsonPath)) {
+            $jsonPath = base_path('user.json');
+        }
 
-        \App\Models\PaymentMethod::insert([
+        if (!File::exists($jsonPath)) {
+            $this->command->error('user.json not found!');
+            return;
+        }
+
+        $users = json_decode(File::get($jsonPath), true);
+
+        foreach ($users as $data) {
+            User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => bcrypt($data['password']),
+                'pin' => $data['pin'],
+                'role' => $data['role'],
+                'is_active' => $data['is_active'],
+            ]);
+        }
+
+        $this->command->info(count($users) . ' users created from user.json');
+    }
+
+    private function seedPaymentMethods(): void
+    {
+        PaymentMethod::insert([
             ['name' => 'Tunai'],
             ['name' => 'Non Tunai'],
         ]);
+    }
 
-        \App\Models\Warehouse::create([
-            'name' => 'Gudang Dapur',
-            'user_id' => null
-        ]);
-
-        \App\Models\Ingredient::create([
-            'name' => 'Kopi Arabica',
-            'unit' => 'gram',
-            'min_stock' => 500
-        ]);
+    private function seedDefaults(): void
+    {
+        Setting::create(['key' => 'inventoris_active', 'value' => 'true']);
+        Setting::create(['key' => 'resep_active', 'value' => 'false']);
     }
 }

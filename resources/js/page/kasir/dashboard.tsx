@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -18,29 +18,47 @@ import {
     LogOut
 } from 'lucide-react';
 
-interface Product {
+interface MenuItem {
     id: number;
     name: string;
     price: number;
-    stock: number;
-    category: 'makanan' | 'minuman' | 'cemilan';
-    image: string;
+    image: string | null;
+    category: string;
+    category_id: number | null;
 }
 
-const MOCK_PRODUCTS: Product[] = [
-    { id: 1, name: 'Kopi Susu Gula Aren', price: 18000, stock: 45, category: 'minuman', image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&auto=format&fit=crop&q=60' },
-    { id: 2, name: 'Matcha Latte Premium', price: 22000, stock: 20, category: 'minuman', image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500&auto=format&fit=crop&q=60' },
-    { id: 3, name: 'Es Teh Manis Melati', price: 6000, stock: 100, category: 'minuman', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format&fit=crop&q=60' },
-    { id: 4, name: 'Jus Alpukat Kocok', price: 15000, stock: 15, category: 'minuman', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&auto=format&fit=crop&q=60' },
-    { id: 5, name: 'Nasi Goreng Spesial', price: 25000, stock: 30, category: 'makanan', image: 'https://images.unsplash.com/photo-1603133872878-685f586b6d1b?w=500&auto=format&fit=crop&q=60' },
-    { id: 6, name: 'Mie Goreng Jawa Keju', price: 20000, stock: 25, category: 'makanan', image: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500&auto=format&fit=crop&q=60' },
-    { id: 7, name: 'Ayam Goreng Kremes', price: 28000, stock: 18, category: 'makanan', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&auto=format&fit=crop&q=60' },
-    { id: 8, name: 'Kentang Goreng Krispi', price: 15000, stock: 40, category: 'cemilan', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&auto=format&fit=crop&q=60' },
-    { id: 9, name: 'Pisang Goreng Keju', price: 12000, stock: 22, category: 'cemilan', image: 'https://images.unsplash.com/photo-1566843972142-a7fcb70de55a?w=500&auto=format&fit=crop&q=60' },
-    { id: 10, name: 'Roti Bakar Cokelat Susu', price: 14000, stock: 15, category: 'cemilan', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60' }
-];
+interface PaymentMethod {
+    id: number;
+    name: string;
+}
+
+interface ReceiptData {
+    message: string;
+    transaction: {
+        id: number;
+        total: number;
+        bayar: number;
+        kembalian: number;
+        items: { menu_id: number; qty: number; harga: number }[];
+        created_at: string;
+    } | null;
+}
+
+interface PageProps {
+    menus: MenuItem[];
+    categories: string[];
+    paymentMethods: PaymentMethod[];
+    resepActive: boolean;
+    todayCount: number;
+    flash: { success: ReceiptData | null; error: string | null };
+    auth: { user: { name: string; email: string } | null };
+}
 
 export default function Dashboard() {
+    const { props } = usePage<PageProps>();
+    const { menus, categories, paymentMethods, resepActive, todayCount, flash, auth } = props;
+    const receiptData = flash?.success as ReceiptData | null;
+
     // Search & Category Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('semua');
@@ -48,9 +66,10 @@ export default function Dashboard() {
     // Cart State: maps product.id -> quantity ordered
     const [cart, setCart] = useState<Record<number, number>>({});
 
-    // Discount and Payment input
+    // Discount, Payment, and Receipt
     const [discountPercentage, setDiscountPercentage] = useState<number>(0);
     const [paidAmountInput, setPaidAmountInput] = useState<string>('');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number>(paymentMethods[0]?.id || 1);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [currentTime, setCurrentTime] = useState('');
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -80,17 +99,13 @@ export default function Dashboard() {
 
     // Add 1 to cart
     const handleAddToCart = (productId: number) => {
-        const product = MOCK_PRODUCTS.find(p => p.id === productId);
+        const product = menus.find(p => p.id === productId);
         if (!product) return;
 
-        setCart(prev => {
-            const currentQty = prev[productId] || 0;
-            if (currentQty >= product.stock) return prev; // Limit to stock
-            return {
-                ...prev,
-                [productId]: currentQty + 1
-            };
-        });
+        setCart(prev => ({
+            ...prev,
+            [productId]: (prev[productId] || 0) + 1
+        }));
     };
 
     // Subtract 1 from cart
@@ -134,14 +149,13 @@ export default function Dashboard() {
         }).format(num);
     };
 
-    // Filter products
-    const filteredProducts = useMemo(() => {
-        return MOCK_PRODUCTS.filter(product => {
-            const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = selectedCategory === 'semua' || product.category === selectedCategory;
+    const filteredMenus = useMemo(() => {
+        return menus.filter(menu => {
+            const matchesSearch = menu.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = selectedCategory === 'semua' || menu.category === selectedCategory;
             return matchesSearch && matchesCategory;
         });
-    }, [searchQuery, selectedCategory]);
+    }, [searchQuery, selectedCategory, menus]);
 
     // Cart calculation values
     const { subtotal, tax, discountAmount, grandTotal, totalItemsCount } = useMemo(() => {
@@ -149,7 +163,7 @@ export default function Dashboard() {
         let count = 0;
         Object.entries(cart).forEach(([idStr, qty]) => {
             const id = parseInt(idStr);
-            const product = MOCK_PRODUCTS.find(p => p.id === id);
+            const product = menus.find(p => p.id === id);
             if (product) {
                 sub += product.price * qty;
                 count += qty;
@@ -181,15 +195,37 @@ export default function Dashboard() {
     // Check if checkout button should be active
     const canCheckout = totalItemsCount > 0 && paidAmount >= grandTotal;
 
+    const [submitting, setSubmitting] = useState(false);
+
     const handleCheckout = () => {
-        if (!canCheckout) return;
-        setShowReceiptModal(true);
+        if (!canCheckout || submitting) return;
+        setSubmitting(true);
+
+        const items = Object.entries(cart).map(([menuId, qty]) => {
+            const product = menus.find(p => p.id === parseInt(menuId));
+            return { menu_id: parseInt(menuId), qty, harga: product?.price || 0 };
+        });
+
+        router.post('/kasir/dashboard', {
+            items,
+            payment_method_id: selectedPaymentMethod,
+            bayar: paidAmount,
+        }, {
+            onSuccess: () => {
+                setSubmitting(false);
+                setShowReceiptModal(true);
+            },
+            onError: () => {
+                setSubmitting(false);
+            },
+        });
     };
 
     const handleResetTransaction = () => {
         handleClearCart();
         generateTransactionId();
         setShowReceiptModal(false);
+        router.reload({ only: ['flash'] });
     };
 
     return (
@@ -214,7 +250,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-4 relative">
                         <div className="hidden sm:flex flex-col text-right select-none">
                             <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 justify-end">
-                                <User className="h-3.5 w-3.5 text-primary" /> Cashier Mel
+                                <User className="h-3.5 w-3.5 text-primary" /> {auth.user?.name || 'Cashier'}
                             </span>
                             <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 justify-end">
                                 <Clock className="h-3 w-3" /> {currentTime || '--:--:--'}
@@ -224,7 +260,7 @@ export default function Dashboard() {
                             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                             className="h-9 w-9 rounded-sm bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-sm text-primary uppercase shadow-inner hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
                         >
-                            CM
+                            {auth.user?.name?.charAt(0) || 'C'}
                         </button>
 
                         {/* Dropdown Menu */}
@@ -237,8 +273,8 @@ export default function Dashboard() {
                                 />
                                 <div className="absolute right-0 top-11 w-48 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-slate-800 dark:text-slate-200">
                                     <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-                                        <p className="text-xs font-bold text-slate-900 dark:text-white">Cashier Mel</p>
-                                        <p className="text-[10px] text-muted-foreground truncate">mel@chasierapp.com</p>
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white">{auth.user?.name || 'Cashier'}</p>
+                                        <p className="text-[10px] text-muted-foreground truncate">{auth.user?.email || ''}</p>
                                     </div>
                                     <Link 
                                         href="/kasir/profile"
@@ -279,7 +315,7 @@ export default function Dashboard() {
                             
                             {/* Categories navigation tabs */}
                             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                                {['semua', 'makanan', 'minuman', 'cemilan'].map((cat) => {
+                                {['semua', ...categories].map((cat) => {
                                     const active = selectedCategory === cat;
                                     return (
                                         <button
@@ -322,42 +358,36 @@ export default function Dashboard() {
 
                         {/* Portrait Product Cards Grid container */}
                         <div className="flex-1 overflow-y-auto pr-1">
-                            {filteredProducts.length > 0 ? (
+                            {filteredMenus.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-                                    {filteredProducts.map((product) => {
+                                    {filteredMenus.map((product) => {
                                         const qty = cart[product.id] || 0;
-                                        const isOutOfStock = product.stock <= 0;
 
                                         return (
                                             <div 
                                                 key={product.id}
-                                                onClick={() => !isOutOfStock && handleAddToCart(product.id)}
+                                                onClick={() => handleAddToCart(product.id)}
                                                 className={`group relative aspect-3/4 w-full rounded-[28px] border overflow-hidden select-none transition-all duration-300 shadow-sm bg-slate-100 dark:bg-slate-900 ${
                                                     qty > 0 
                                                         ? 'border-primary ring-4 ring-primary/10 scale-[0.98]' 
                                                         : 'border-slate-200/60 dark:border-slate-800/60 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md cursor-pointer'
-                                                } ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                }`}
                                             >
                                                 {/* Full Cover Product Image */}
-                                                <img 
-                                                    src={product.image} 
-                                                    alt={product.name} 
-                                                    className="w-full h-full object-cover absolute inset-0 transition-transform duration-500 group-hover:scale-105" 
-                                                />
+                                                {product.image ? (
+                                                    <img 
+                                                        src={product.image} 
+                                                        alt={product.name} 
+                                                        className="w-full h-full object-cover absolute inset-0 transition-transform duration-500 group-hover:scale-105" 
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full absolute inset-0 bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                                                        <ShoppingBag className="h-12 w-12 text-slate-400" />
+                                                    </div>
+                                                )}
 
-                                                {/* Dark Overlay (Gradient from bottom to top for text readability) */}
+                                                {/* Dark Overlay */}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent" />
-
-                                                {/* Stock badge overlay on top right */}
-                                                <div className="absolute top-3 right-3 z-10">
-                                                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide border backdrop-blur-md ${
-                                                        isOutOfStock 
-                                                            ? 'bg-destructive/15 text-destructive border-destructive/20' 
-                                                            : 'bg-white/90 dark:bg-slate-950/90 text-slate-700 dark:text-slate-300 border-slate-200/50 dark:border-slate-800/50'
-                                                    }`}>
-                                                        {isOutOfStock ? 'Habis' : `Stok: ${product.stock}`}
-                                                    </span>
-                                                </div>
 
                                                 {/* Blurred Text overlay at the bottom */}
                                                 <div className="absolute bottom-0 inset-x-0 p-4 bg-white/40 dark:bg-slate-950/40 backdrop-blur-md border-t border-white/20 dark:border-white/5 flex flex-col justify-end">
@@ -376,7 +406,7 @@ export default function Dashboard() {
                                                 {qty > 0 && (
                                                     <div 
                                                         className="absolute inset-0 bg-slate-950/30 dark:bg-slate-950/50 backdrop-blur-[3px] flex items-center justify-center z-10 transition-all duration-300"
-                                                        onClick={(e) => e.stopPropagation()} // Prevent clicking overlay from triggering add to cart
+                                                        onClick={(e) => e.stopPropagation()}
                                                     >
                                                         <div className="bg-white dark:bg-slate-900 rounded-full shadow-xl border border-slate-200/50 dark:border-slate-800 p-1.5 flex items-center gap-3 animate-in zoom-in-95 duration-150">
                                                             <button
@@ -390,8 +420,7 @@ export default function Dashboard() {
                                                             </span>
                                                             <button
                                                                 onClick={() => handleAddToCart(product.id)}
-                                                                disabled={qty >= product.stock}
-                                                                className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 cursor-pointer transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-sm"
+                                                                className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 cursor-pointer transition-colors shadow-sm"
                                                             >
                                                                 <Plus className="h-4 w-4" />
                                                             </button>
@@ -444,7 +473,7 @@ export default function Dashboard() {
                             {totalItemsCount > 0 ? (
                                 Object.entries(cart).map(([idStr, qty]) => {
                                     const id = parseInt(idStr);
-                                    const product = MOCK_PRODUCTS.find(p => p.id === id);
+                                    const product = menus.find(p => p.id === id);
                                     if (!product) return null;
 
                                     return (
@@ -473,8 +502,7 @@ export default function Dashboard() {
                                                         </span>
                                                         <button
                                                             onClick={() => handleAddToCart(product.id)}
-                                                            disabled={qty >= product.stock}
-                                                            className="h-6 w-6 rounded-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-sm"
+                                                            className="h-6 w-6 rounded-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100 cursor-pointer shadow-sm"
                                                         >
                                                             <Plus className="h-3 w-3" />
                                                         </button>
@@ -654,7 +682,7 @@ export default function Dashboard() {
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Kasir</span>
-                                        <span className="font-bold text-slate-700">Cashier Mel</span>
+                                        <span className="font-bold text-slate-700">{auth.user?.name || 'Cashier'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Waktu</span>
@@ -667,23 +695,40 @@ export default function Dashboard() {
 
                                 {/* Bought Items */}
                                 <div className="space-y-2 text-[10px]">
-                                    {Object.entries(cart).map(([idStr, qty]) => {
-                                        const id = parseInt(idStr);
-                                        const product = MOCK_PRODUCTS.find(p => p.id === id);
-                                        if (!product) return null;
+                                    {receiptData?.transaction ? (
+                                        receiptData.transaction.items.map((item, idx) => {
+                                            const product = menus.find(m => m.id === item.menu_id);
+                                            return (
+                                                <div key={idx} className="space-y-0.5">
+                                                    <div className="flex justify-between font-bold text-slate-800">
+                                                        <span>{product?.name || 'Menu #'+item.menu_id}</span>
+                                                        <span>{formatIDR(item.harga * item.qty)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-[9px] text-slate-500 pl-1">
+                                                        <span>{item.qty} x {formatIDR(item.harga)}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        Object.entries(cart).map(([idStr, qty]) => {
+                                            const id = parseInt(idStr);
+                                            const product = menus.find(p => p.id === id);
+                                            if (!product) return null;
 
-                                        return (
-                                            <div key={product.id} className="space-y-0.5">
-                                                <div className="flex justify-between font-bold text-slate-800">
-                                                    <span>{product.name}</span>
-                                                    <span>{formatIDR(product.price * qty)}</span>
+                                            return (
+                                                <div key={product.id} className="space-y-0.5">
+                                                    <div className="flex justify-between font-bold text-slate-800">
+                                                        <span>{product.name}</span>
+                                                        <span>{formatIDR(product.price * qty)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-[9px] text-slate-500 pl-1">
+                                                        <span>{qty} x {formatIDR(product.price)}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex justify-between text-[9px] text-slate-500 pl-1">
-                                                    <span>{qty} x {formatIDR(product.price)}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })
+                                    )}
                                 </div>
 
                                 {/* Divider */}
@@ -691,24 +736,35 @@ export default function Dashboard() {
 
                                 {/* Calculations */}
                                 <div className="space-y-1 text-[10px]">
-                                    <div className="flex justify-between">
-                                        <span>Subtotal</span>
-                                        <span>{formatIDR(subtotal)}</span>
-                                    </div>
-                                    {discountAmount > 0 && (
-                                        <div className="flex justify-between text-destructive">
-                                            <span>Diskon ({discountPercentage}%)</span>
-                                            <span>-{formatIDR(discountAmount)}</span>
-                                        </div>
+                                    {receiptData?.transaction ? (
+                                        <>
+                                            <div className="flex justify-between font-extrabold text-slate-900 border-t border-slate-200 border-dashed pt-0 mt-0">
+                                                <span>TOTAL</span>
+                                                <span>{formatIDR(receiptData.transaction.total)}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex justify-between">
+                                                <span>Subtotal</span>
+                                                <span>{formatIDR(subtotal)}</span>
+                                            </div>
+                                            {discountAmount > 0 && (
+                                                <div className="flex justify-between text-destructive">
+                                                    <span>Diskon ({discountPercentage}%)</span>
+                                                    <span>-{formatIDR(discountAmount)}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between">
+                                                <span>PPN (11%)</span>
+                                                <span>{formatIDR(tax)}</span>
+                                            </div>
+                                            <div className="flex justify-between font-extrabold text-slate-900 border-t border-slate-200 border-dashed pt-1 mt-1">
+                                                <span>TOTAL</span>
+                                                <span>{formatIDR(grandTotal)}</span>
+                                            </div>
+                                        </>
                                     )}
-                                    <div className="flex justify-between">
-                                        <span>PPN (11%)</span>
-                                        <span>{formatIDR(tax)}</span>
-                                    </div>
-                                    <div className="flex justify-between font-extrabold text-slate-900 border-t border-slate-200 border-dashed pt-1 mt-1">
-                                        <span>TOTAL</span>
-                                        <span>{formatIDR(grandTotal)}</span>
-                                    </div>
                                 </div>
 
                                 {/* Divider */}
@@ -716,14 +772,29 @@ export default function Dashboard() {
 
                                 {/* Payment details */}
                                 <div className="space-y-1 text-[10px]">
-                                    <div className="flex justify-between text-slate-600">
-                                        <span>Tunai</span>
-                                        <span>{formatIDR(paidAmount)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-slate-600">
-                                        <span>Kembalian</span>
-                                        <span>{formatIDR(changeAmount)}</span>
-                                    </div>
+                                    {receiptData?.transaction ? (
+                                        <>
+                                            <div className="flex justify-between text-slate-600">
+                                                <span>Tunai</span>
+                                                <span>{formatIDR(receiptData.transaction.bayar)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-600">
+                                                <span>Kembalian</span>
+                                                <span>{formatIDR(receiptData.transaction.kembalian)}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex justify-between text-slate-600">
+                                                <span>Tunai</span>
+                                                <span>{formatIDR(paidAmount)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-600">
+                                                <span>Kembalian</span>
+                                                <span>{formatIDR(changeAmount)}</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Footer message */}

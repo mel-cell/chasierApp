@@ -1,0 +1,50 @@
+[
+    {
+        "name": "Lintang",
+        "email": "owner@gmail.com",
+        "password": "owner123",
+        "pin": "123456",
+        "role": "owner",
+        "is_active": true
+    },
+    {
+        "name": "Kasir 1",
+        "email": "kasir1@gmail.com",
+        "password": "kasir123",
+        "pin": "111111",
+        "role": "kasir",
+        "is_active": true
+    },
+    {
+        "name": "Kasir 2",
+        "email": "kasir2@gmail.com",
+        "password": "kasir456",
+        "pin": "111112",
+        "role": "kasir",
+        "is_active": true
+    },
+    {
+        "name": "Kasir 3",
+        "email": "kasir3@gmail.com",
+        "password": "kasir789",
+        "pin": "111113",
+        "role": "kasir",
+        "is_active": true
+    },
+    {
+        "name": "Inventoris 1",
+        "email": "inventoris1@gmail.com",
+        "password": "inv123",
+        "pin": "222222",
+        "role": "inventoris",
+        "is_active": true
+    },
+    {
+        "name": "Inventoris 2",
+        "email": "inventoris2@gmail.com",
+        "password": "inv456",
+        "pin": "222223",
+        "role": "inventoris",
+        "is_active": true
+    }
+]
